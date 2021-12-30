@@ -1,19 +1,9 @@
-// Day 1 Part 1 - Expense report
-//
-// Specifically, they need you to find the two entries that sum to 2020 and then multiply those two
-// numbers together.
+//--- Day 1: Sonar Sweep ---
 
-//For example, suppose your expense report contained the following:
-
-//1721
-//979
-//366
-//299
-//675
-//1456
-
-//In this list, the two entries that sum to 2020 are 1721 and 299. Multiplying them together
-//produces 1721 * 299 = 514579, so the correct answer is 514579.
+//You're minding your own business on a ship at sea when the overboard alarm goes off! You rush to
+//see if you can help. Apparently, one of the Elves tripped and accidentally sent the sleigh keys
+//flying into the ocean!
+// etc.
 
 use std::str::FromStr;
 use std::num::ParseIntError;
