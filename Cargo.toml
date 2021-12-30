@@ -5,3 +5,4 @@ authors = ["Alex Kavanagh <alex@ajkavanagh.co.uk>"]
 edition = "2021"
 
 [dependencies]
+thiserror = "1.0"

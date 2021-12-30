@@ -71,7 +71,7 @@ pub fn day1_1() {
     }
 
     println!("Now let's read the depths file and then find the number of increases:");
-    let parsed_numbers = utils::read_file::<u32>("./input/day1-1.txt");
+    let parsed_numbers = utils::read_file::<u32>("./input/day01-1.txt");
     let numbers = extract_numbers(&parsed_numbers);
     match count_depth_increases(&numbers) {
         Ok(n) => println!("The number of increases is {}", n),
@@ -88,7 +88,7 @@ pub fn day1_2() {
     }
 
     println!("Now let's read the depths file and then find the number of increases:");
-    let parsed_numbers = utils::read_file::<u32>("./input/day1-1.txt");
+    let parsed_numbers = utils::read_file::<u32>("./input/day01-1.txt");
     let numbers = extract_numbers(&parsed_numbers);
     match count_depth_increases3(&numbers) {
         Ok(n) => println!("The number of increases is {}", n),
