@@ -23,19 +23,6 @@ use crate::utils;
 const NUMBERS: [u32; 10] = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
 
 
-fn find_pair(numbers: &[u32]) -> Result<(u32, u32), String> {
-    for n1 in 0..(numbers.len() - 1) {
-        for n2 in n1..numbers.len() {
-            let v1 = numbers[n1];
-            let v2 = numbers[n2];
-            if v1 + v2 == 2020 {
-                return Ok((v1, v2));
-            }
-        }
-    }
-    Err("Couldn't find a pair that adds to 2020".to_string())
-}
-
 fn count_depth_increases(numbers: &[u32]) -> Result<u32, String> {
     let mut n1 = numbers.get(0).expect("No numbers passed");
     let mut count: u32 = 0;
@@ -44,6 +31,30 @@ fn count_depth_increases(numbers: &[u32]) -> Result<u32, String> {
             count += 1;
         }
         n1 = n2;
+    }
+    Ok(count)
+}
+
+
+fn count_depth_increases3(numbers: &[u32]) -> Result<u32, String> {
+    if numbers.len() < 4 {
+        return Err("Not enough numbers".to_string());
+    }
+    let mut count: u32 = 0;
+    let mut sum: u32 = 0;
+    let mut ns: [u32; 3] = [0; 3];
+    for (i, n) in numbers.iter().enumerate() {
+        if i < 3 {
+            ns[i] = *n;
+            sum += n;
+            continue;
+        }
+        let next_sum = sum - ns[i % 3] + n;
+        if next_sum > sum {
+            count += 1;
+        }
+        sum = next_sum;
+        ns[i % 3] = *n;
     }
     Ok(count)
 }
@@ -73,6 +84,23 @@ pub fn day1_1() {
     let parsed_numbers = utils::read_file::<u32>("./input/day1-1.txt");
     let numbers = extract_numbers(&parsed_numbers);
     match count_depth_increases(&numbers) {
+        Ok(n) => println!("The number of increases is {}", n),
+        Err(s) => println!("{0}", s),
+    }
+}
+
+
+pub fn day1_2() {
+    println!("First let's just do the test with the depths:");
+    match count_depth_increases3(&NUMBERS) {
+        Ok(n) => println!("The number of increases is {}", n),
+        Err(s) => println!("{0}", s),
+    }
+
+    println!("Now let's read the depths file and then find the number of increases:");
+    let parsed_numbers = utils::read_file::<u32>("./input/day1-1.txt");
+    let numbers = extract_numbers(&parsed_numbers);
+    match count_depth_increases3(&numbers) {
         Ok(n) => println!("The number of increases is {}", n),
         Err(s) => println!("{0}", s),
     }
