@@ -48,6 +48,48 @@ fn bin_to_nums(s: String) -> (u32, u32) {
     (num1, num2)
 }
 
+fn filter_at(nums: &[String], pos: usize, most: bool) -> Vec<String> {
+    // need to count the most common bit at 'pos' and then filter by that.
+    // Note the most inverts whether it's most common => least common.
+    let mut count: usize = 0;
+    let length = nums.len();
+    let half = length / 2;
+    for num in nums.iter() {
+        match num.chars().nth(pos) {
+            Some(c) => {
+                if c == '1' { count += 1 }
+            },
+            None => {},
+        };
+    }
+    let mut by_bool = if half * 2 == length {
+        count >= half
+    } else {
+        count > half
+    };
+    if most == false {
+        by_bool = !by_bool;
+    }
+    let by = if by_bool { '1' } else { '0' };
+    nums.iter()
+        .filter(|n| n.chars().nth(pos).map_or_else(|| false, |c| c == by))
+        .cloned()
+        .collect::<Vec<_>>()
+}
+
+fn filter_by(nums: &[String], most: bool) -> String {
+    // filter the list of nums by filter_at progressively moving across (by pos, starting at 0)
+    // until only one number remains.  There must be at least 1 num in nums.
+    let mut ns: Vec<String> = nums.to_vec();
+    for pos in 0..nums[0].len() {
+        ns = filter_at(&ns[..], pos, most);
+        if ns.len() == 1 {
+            break;
+        }
+    }
+    ns[0].clone()
+}
+
 pub fn day3_1() {
     println!("First let's just get the binary test numbers:");
     let r_strings = utils::read_file::<String>("./input/day03.txt");
@@ -56,6 +98,24 @@ pub fn day3_1() {
             println!("Result value is: {:?}", strings);
             let (ones, zeros) = bin_to_nums(aggregate_strings(&strings));
             println!("Calculation {} * {} = {}", ones, zeros, ones * zeros);
+        },
+        Err(s) => println!("Parsing failed: {}", s),
+    };
+}
+
+
+pub fn day3_2() {
+    println!("Calculate the Day3 part 2 numbers.");
+    let r_strings = utils::read_file::<String>("./input/day03.txt");
+    match r_strings.iter().cloned().collect::<Result<Vec<String>, _>>() {
+        Ok(strings) => {
+            println!("Result value is: {:?}", strings);
+            let o2 = filter_by(&strings, true);
+            let co2 = filter_by(&strings, false);
+            println!("o2: {}, co2: {}", o2, co2);
+            let (o2v, _) = bin_to_nums(o2);
+            let (co2v, _) = bin_to_nums(co2);
+            println!("Result: o2: {}, co2: {}, o2 * co2 = {}", o2v, co2v, o2v * co2v);
         },
         Err(s) => println!("Parsing failed: {}", s),
     };
