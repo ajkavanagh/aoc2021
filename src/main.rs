@@ -47,12 +47,12 @@ fn usage() -> Result<(), String> {
 
 fn run_day_part(day: u32, part: u32) {
     match (day, part) {
-        (1,1) => days::day1::day1_1(),
-        (1,2) => days::day1::day1_2(),
-        (2,1) => days::day2::day2_1(),
-        (2,2) => days::day2::day2_2(),
-        (3,1) => days::day3::day3_1(),
-        (3,2) => days::day3::day3_2(),
+        (1,1) => days::day01::day1_1(),
+        (1,2) => days::day01::day1_2(),
+        (2,1) => days::day02::day2_1(),
+        (2,2) => days::day02::day2_2(),
+        (3,1) => days::day03::day3_1(),
+        (3,2) => days::day03::day3_2(),
         _ => println!("Day {0}-{1} not defined (yet?)", day, part),
     }
 }
