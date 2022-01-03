@@ -142,7 +142,6 @@ fn parse_boards<S>(lines: &[S]) -> Result<Vec<Board>, DecodeError>
         if i + 4 >= length {
             return Err(DecodeError::InvalidError("Insufficient lines for a board?".to_string()));
         }
-        //let board = parse_a_board(&lines[i..i+5])?;
         let board = Board::parse_one(&lines[i..i+5])?;
         boards.push(board);
         i += 5;
@@ -151,8 +150,8 @@ fn parse_boards<S>(lines: &[S]) -> Result<Vec<Board>, DecodeError>
 }
 
 
-fn check_boards_at_move(so_far: &HashSet<u32>, boards: &[Board]) -> Option<usize> {
-    //let so_far: HashSet<u32> = draws.iter().cloned().collect();
+// finds the first board that has won (check_board_at_move).
+fn check_for_a_winning_board(so_far: &HashSet<u32>, boards: &[Board]) -> Option<usize> {
     for (i, board) in boards.iter().enumerate() {
         if board.check_board_at_move(so_far) {
             // return the index of the board that has a line or column
@@ -164,16 +163,52 @@ fn check_boards_at_move(so_far: &HashSet<u32>, boards: &[Board]) -> Option<usize
 
 
 // find the winning board index using the draws in sequence until we have a winning board
-fn find_winning_board(draws: &Draws, boards: &[Board]) -> u32 {
+fn find_first_winning_board(draws: &Draws, boards: &[Board]) -> u32 {
     let mut so_far: HashSet<u32> = HashSet::with_capacity(draws.0.len());
     for &draw in draws.0.iter() {
         so_far.insert(draw);
-        if let Some(index) = check_boards_at_move(&so_far, boards) {
+        if let Some(index) = check_for_a_winning_board(&so_far, boards) {
             // sum up the unmarked numbers
             let sum = boards[index].sum_unmarked_numbers(&so_far);
             // return the full sum
             return sum * draw;
         }
+    }
+    panic!("Should have found a winning board?")
+}
+
+
+// see if ALL the boards have won; returns the indexes of boards that haven't yet won.
+fn check_for_losing_boards(so_far: &HashSet<u32>, boards: &[Board]) -> Vec<usize> {
+    let mut result: Vec<usize> = Vec::with_capacity(boards.len());
+    for (i, board) in boards.iter().enumerate() {
+        if !board.check_board_at_move(so_far) {
+            // add a board index if the board is not complete
+            result.push(i);
+        }
+    }
+    result
+}
+
+
+// find the winning board index using the draws in sequence until we have a winning board
+fn find_last_winning_board(draws: &Draws, boards: &[Board]) -> u32 {
+    let mut so_far: HashSet<u32> = HashSet::with_capacity(draws.0.len());
+    let mut last_round: Vec<usize> = vec![];
+    for &draw in draws.0.iter() {
+        so_far.insert(draw);
+        let round = check_for_losing_boards(&so_far, boards);
+        if round.len() == 0 {
+            // we've just had the last board.
+            if last_round.len() != 1 {
+                panic!("last round wasn't a single board when the final board was won??");
+            }
+            // sum up the unmarked numbers
+            let sum = boards[last_round[0]].sum_unmarked_numbers(&so_far);
+            // return the full sum
+            return sum * draw;
+        }
+        last_round = round;
     }
     panic!("Should have found a winning board?")
 }
@@ -185,9 +220,23 @@ pub fn day4_1() {
     let lines = read_lines.iter().cloned().collect::<Result<Vec<_>, _>>().expect("Failed to read file");
 
     let draws = lines[0].parse::<Draws>();
-    println!("Draws are {:?}", draws);
+    //println!("Draws are {:?}", draws);
     let boards = parse_boards(&lines[1..]);
-    println!("Boards are: {:?}", boards);
-    let winner = find_winning_board(&draws.unwrap(), &boards.unwrap());
+    //println!("Boards are: {:?}", boards);
+    let winner = find_first_winning_board(&draws.unwrap(), &boards.unwrap());
+    println!("Winner index: {}", winner);
+}
+
+
+pub fn day4_2() {
+    println!("Giant Squid bingo! Squid has to win.");
+    let read_lines = utils::read_file::<String>("./input/day04.txt");
+    let lines = read_lines.iter().cloned().collect::<Result<Vec<_>, _>>().expect("Failed to read file");
+
+    let draws = lines[0].parse::<Draws>();
+    //println!("Draws are {:?}", draws);
+    let boards = parse_boards(&lines[1..]);
+    //println!("Boards are: {:?}", boards);
+    let winner = find_last_winning_board(&draws.unwrap(), &boards.unwrap());
     println!("Winner index: {}", winner);
 }
