@@ -17,6 +17,12 @@ pub fn read_file<T: FromStr>(file_name: &str) -> Vec<Result<T, <T as FromStr>::E
 }
 
 
+pub fn read_file_single_result<T>(file_name: &str) -> Result<Vec<T>, <T as FromStr>::Err>
+    where T: FromStr + Clone,
+          <T as FromStr>::Err: Clone,
+{
+    read_file::<T>(file_name).iter().cloned().collect::<Result<Vec<_>, _>>()
+}
 
 /// process a set of lines into a <Vec<Vec<&str>> -- i.e. don't copy the lines, just their
 /// references.  We split batches on blank lines.

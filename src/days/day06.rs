@@ -43,12 +43,12 @@ fn age_fish(gen: &Fish) -> Fish {
 
 pub fn day6_1() {
     println!("Day 5: Hydrothermal Venture");
-    let read_lines = utils::read_file::<String>("./input/day06.txt");
-    if read_lines.len() != 1 {
-        println!("Input file has either no lines or more than 1: {}", read_lines.len());
+    let lines = utils::read_file_single_result::<String>("./input/day06.txt")
+        .expect("Error reading the file");
+    if lines.len() != 1 {
+        println!("Input file has either no lines or more than 1: {}", lines.len());
         return;
     }
-    let lines = read_lines.iter().cloned().collect::<Result<Vec<_>, _>>().expect("Failed to read file");
     let mut fish = parse_fish(&lines[0]).expect("Failed to parse fish");
     println!("Fish are: {:?}", fish);
     for i in 1..=80 {
@@ -62,12 +62,12 @@ pub fn day6_1() {
 
 pub fn day6_2() {
     println!("Day 5: Hydrothermal Venture");
-    let read_lines = utils::read_file::<String>("./input/day06.txt");
-    if read_lines.len() != 1 {
-        println!("Input file has either no lines or more than 1: {}", read_lines.len());
+    let lines = utils::read_file_single_result::<String>("./input/day06.txt")
+        .expect("Error reading the file");
+    if lines.len() != 1 {
+        println!("Input file has either no lines or more than 1: {}", lines.len());
         return;
     }
-    let lines = read_lines.iter().cloned().collect::<Result<Vec<_>, _>>().expect("Failed to read file");
     let mut fish = parse_fish(&lines[0]).expect("Failed to parse fish");
     println!("Fish are: {:?}", fish);
     for i in 1..=256 {
