@@ -12,7 +12,6 @@
 //opposite result of what you might expect.
 
 use std::str::FromStr;
-use std::num::ParseIntError;
 
 use crate::utils;
 
@@ -25,8 +24,6 @@ pub enum CommandError {
     DecodeError(String),
     #[error("Invalid command")]
     InvalidError(String),
-    #[error("unknown decoding error")]
-    Unknown,
 }
 
 

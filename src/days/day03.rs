@@ -8,13 +8,7 @@
 
 //Each bit in the gamma rate can be determined by finding the most common bit in the corresponding position of all numbers in the diagnostic report. For example, given the following diagnostic report:
 
-use std::str::FromStr;
-use std::num::ParseIntError;
-
 use crate::utils;
-
-
-use thiserror::Error;
 
 
 fn aggregate_strings(nums: &[String]) -> String {

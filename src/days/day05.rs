@@ -6,7 +6,6 @@
 use std::str::FromStr;
 use std::ops::Add;
 use std::ops::Sub;
-use std::num::ParseIntError;
 use std::collections::HashMap;
 
 use crate::utils;
@@ -105,7 +104,6 @@ impl Line {
 
 #[derive(Clone, Debug)]
 struct LineIterator {
-    start: PointXY,
     end: PointXY,
     dx: i32,
     dy: i32,
@@ -124,8 +122,7 @@ impl LineIterator {
         let sx = if line.start.x < line.end.x { 1 } else { -1 };
         let sy = if line.start.y < line.end.y { 1 } else { -1 };
         let err = dx + dy;
-        Self {start: line.start, end: line.end, dx, dy, sx, sy, err,
-              pos: Some(line.start) }
+        Self {end: line.end, dx, dy, sx, sy, err, pos: Some(line.start) }
     }
 }
 // implement iter() fo Line and then Iterator trait for LineIterator

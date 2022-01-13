@@ -6,7 +6,6 @@
 
 
 use std::str::FromStr;
-use std::num::ParseIntError;
 use std::collections::HashSet;
 
 use crate::utils;
@@ -25,8 +24,6 @@ use thiserror::Error;
 pub enum DecodeError {
     #[error("Invalid command")]
     InvalidError(String),
-    #[error("unknown decoding error")]
-    Unknown,
 }
 
 
