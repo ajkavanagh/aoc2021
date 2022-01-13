@@ -26,21 +26,44 @@ pub fn read_file_single_result<T>(file_name: &str) -> Result<Vec<T>, <T as FromS
 
 /// process a set of lines into a <Vec<Vec<&str>> -- i.e. don't copy the lines, just their
 /// references.  We split batches on blank lines.
-pub fn process_lines_to_batches<'a>(lines: &[&'a str]) -> Vec<Vec<&'a str>> {
-    let mut result = Vec::new();
-    let mut batch = Vec::new();
-    for line in lines {
-        if line.trim().is_empty() {
-            if !batch.is_empty() {
-                result.push(batch.clone());
-                batch.clear();
-            }
-        } else {
-            batch.push(*line);
+//pub fn process_lines_to_batches<'a>(lines: &[&'a str]) -> Vec<Vec<&'a str>> {
+    //let mut result = Vec::new();
+    //let mut batch = Vec::new();
+    //for line in lines {
+        //if line.trim().is_empty() {
+            //if !batch.is_empty() {
+                //result.push(batch.clone());
+                //batch.clear();
+            //}
+        //} else {
+            //batch.push(*line);
+        //}
+    //}
+    //if !batch.is_empty() {
+        //result.push(batch.clone());
+    //}
+    //result
+//}
+
+
+//pub fn sort_string<S: ToString>(s: S) -> String {
+    //let mut cs = s.to_string().chars().collect::<Vec<char>>();
+    //cs.sort_by(|a,b| a.cmp(b));
+    //cs.iter().collect()
+//}
+
+
+/// count the number of bits in a
+pub fn count_bits(v: usize, n: usize) -> usize
+{
+    let mut count: usize = 0;
+    let mut bit: usize = 1;
+    for _ in 0..n {
+        if v & bit == bit {
+            count +=1;
         }
+        bit *= 2;
     }
-    if !batch.is_empty() {
-        result.push(batch.clone());
-    }
-    result
+    count
 }
+
