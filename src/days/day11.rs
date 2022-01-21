@@ -109,7 +109,7 @@ fn print_map(octos: &Octos) {
 }
 
 pub fn day11_1() {
-    println!("Day 10: Dumbo Octopus, part 1");
+    println!("Day 11: Dumbo Octopus, part 1");
     let lines = utils::read_file_single_result::<String>("./input/day11.txt").expect("Couldn't read file");
     println!("Input: {:?}", &lines);
     let mut map = parse_lines(&lines);
@@ -122,3 +122,27 @@ pub fn day11_1() {
     print_map(&map);
     println!("Total flashes: {}", all_flashes);
 }
+
+
+pub fn day11_2() {
+    println!("Day 11: Dumbo Octopus, part 2");
+    let lines = utils::read_file_single_result::<String>("./input/day11.txt").expect("Couldn't read file");
+    println!("Input: {:?}", &lines);
+    let mut map = parse_lines(&lines);
+    print_map(&map);
+    let size = (map.height * map.width) as u32;
+    let mut all_flashes: u32 = 0;
+    let mut steps: u32 = 0;
+    loop {
+        steps += 1;
+        let flashes = do_step(&mut map);
+        all_flashes += flashes;
+        if flashes == size {
+            break;
+        }
+    }
+    println!("after {} steps:", steps);
+    print_map(&map);
+    println!("Total flashes: {}", all_flashes);
+}
+
