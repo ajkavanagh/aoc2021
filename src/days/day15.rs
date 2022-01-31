@@ -44,12 +44,6 @@ impl PartialEq for Item {
     }
 }
 
-fn distance(map: &Map, down: usize, across: usize) -> usize {
-    let x = map[0].len() - across;
-    let y = map.len() - down;
-    x + y
-}
-
 // find the least costly path by using a prioity queue to search from 0,0 to maxd, maxa.
 // The priority will be the current path cost + the manhatten distance to the end.
 fn least_costly_path(map: &Map) -> usize {
