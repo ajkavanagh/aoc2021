@@ -23,6 +23,7 @@ trait MapAt {
 }
 
 
+// part 1 solution - real map
 #[derive(Clone, Debug)]
 struct Map(Vec<Vec<u32>>);
 
@@ -54,6 +55,46 @@ impl MapAt for Map {
     }
 }
 
+// --- part 2 - a virtual map 5 times the size of the real one.
+#[derive(Clone, Debug)]
+struct VirtualMap {
+    map: Map,
+    md: usize,             // the multiplier for the downward direction
+    ma: usize,             // the multiplier for the across direction
+}
+
+
+impl VirtualMap {
+
+    fn parse<S>(lines: &[S], md: usize, ma: usize) -> Result<Self, String>
+        where S: AsRef<str> + fmt::Display
+    {
+        let map = Map::parse(lines)?;
+        Ok(Self {map, md, ma})
+    }
+}
+
+impl MapAt for VirtualMap {
+
+    fn at(&self, down: usize, across: usize) -> Option<u32> {
+        let (vd, va) = self.map.bounds();
+        let rd = down % vd;
+        let ra = across % va;
+        self.map.at(rd, ra).and_then(|v|
+            {
+                let md = (down / vd) as u32;
+                let ma = (across / va) as u32;
+                Some((((v - 1) + md + ma) % 9) + 1)
+            })
+    }
+
+    fn bounds(&self) -> (usize, usize) {
+        let (vd, va) = self.map.bounds();
+        (vd * self.md, va * self.ma)
+    }
+}
+
+// ---
 
 #[derive(Clone, Debug, Eq, Hash)]
 struct Item {
@@ -72,7 +113,7 @@ impl PartialEq for Item {
 
 // find the least costly path by using a prioity queue to search from 0,0 to maxd, maxa.
 // The priority will be the current path cost + the manhatten distance to the end.
-fn least_costly_path(map: &Map) -> usize {
+fn least_costly_path(map: &dyn MapAt) -> usize {
     let (down_max, across_max) = map.bounds();
     let mut pq = PriorityQueue::new();
     let mut been_there: HashMap<(usize, usize), usize> = HashMap::new();
@@ -82,9 +123,9 @@ fn least_costly_path(map: &Map) -> usize {
 
     // now loop taking the least cost route and moving it forwards.
     while let Some((item, _)) = pq.pop() {
-        println!("Item is {:?}, pq length is: {}", &item, pq.len());
+        let cost = map.at(item.down, item.across).unwrap();
+        println!("Item is {:?}, cost there: {}, pq length is: {}", &item, &cost, pq.len());
         for &(dd, da) in [(-1,0),(1,0),(0,-1),(0,1)].iter() {
-        //for &dd in ([-1,0,1] as [i32; 3]).iter() {
             let dn = dd + (item.down as i32);
             let an = da + (item.across as i32);
             if dn < 0 {
@@ -132,6 +173,15 @@ pub fn day15_1() {
         .expect("Couldn't read file");
     println!("Input: {:?}", &lines);
     let input = Map::parse(&lines).expect("Parsing went wrong?");
-    //println!("parsed input: {:?}", input);
+    println!("least costly path: {}", least_costly_path(&input));
+}
+
+
+pub fn day15_2() {
+    println!("Day 15: Chiton, part 2");
+    let lines = utils::read_file_single_result::<String>("./input/day15.txt")
+        .expect("Couldn't read file");
+    println!("Input: {:?}", &lines);
+    let input = VirtualMap::parse(&lines, 5, 5).expect("Parsing went wrong?");
     println!("least costly path: {}", least_costly_path(&input));
 }
