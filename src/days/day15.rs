@@ -13,20 +13,45 @@ use priority_queue::PriorityQueue;
 use crate::utils;
 
 
-type Map = Vec<Vec<u32>>;
+trait MapAt {
+    // Get the item at (down, across).  If out of bounds, returns None.
+    fn at(&self, down: usize, across: usize) -> Option<u32>;
+
+    // Get the size of the Map in (down, across).  Note if size is 10, valid incices are 0 to 9
+    // inclusive.
+    fn bounds(&self) -> (usize, usize);
+}
 
 
-fn parse<S>(lines: &[S]) -> Result<Map, String>
-    where S: AsRef<str> + fmt::Display
-{
-    let l = lines
-         .iter()
-         .map(|l| l.as_ref()
-                   .chars()
-                   .map(|c| c.to_digit(10).unwrap())
-                   .collect::<Vec<u32>>())
-         .collect::<Vec<_>>();
-    Ok(l)
+#[derive(Clone, Debug)]
+struct Map(Vec<Vec<u32>>);
+
+impl Map {
+
+    fn parse<S>(lines: &[S]) -> Result<Self, String>
+        where S: AsRef<str> + fmt::Display
+    {
+        let l = lines
+             .iter()
+             .map(|l| l.as_ref()
+                       .chars()
+                       .map(|c| c.to_digit(10).unwrap())
+                       .collect::<Vec<u32>>())
+             .collect::<Vec<_>>();
+        Ok(Self(l))
+    }
+}
+
+
+impl MapAt for Map {
+
+    fn at(&self, down: usize, across: usize) -> Option<u32> {
+        self.0.get(down).and_then(|v| v.get(across).cloned())
+    }
+
+    fn bounds(&self) -> (usize, usize) {
+        (self.0.len(), self.0[0].len())
+    }
 }
 
 
@@ -36,6 +61,7 @@ struct Item {
     across: usize,
     cost: usize,
 }
+
 
 // two items are equal if there are in the same place.
 impl PartialEq for Item {
@@ -47,6 +73,7 @@ impl PartialEq for Item {
 // find the least costly path by using a prioity queue to search from 0,0 to maxd, maxa.
 // The priority will be the current path cost + the manhatten distance to the end.
 fn least_costly_path(map: &Map) -> usize {
+    let (down_max, across_max) = map.bounds();
     let mut pq = PriorityQueue::new();
     let mut been_there: HashMap<(usize, usize), usize> = HashMap::new();
     //pq.push(Item {down: 0, across: 0, cost: 0}, distance(&map, 0, 0));
@@ -63,24 +90,24 @@ fn least_costly_path(map: &Map) -> usize {
             if dn < 0 {
                 continue;
             }
-            if (dn as usize) >= map.len() {
+            if (dn as usize) >= down_max {
                 continue;
             }
             if an < 0 {
                 continue;
             }
-            if (an as usize) >= map[0].len() {
+            if (an as usize) >= across_max {
                 continue;
             }
             // see if we've reached the end.
             let udn = dn as usize;
             let uan = an as usize;
-            if udn == map.len() -1 && uan == map[udn].len() -1 {
-                return item.cost + (map[udn][uan] as usize);
+            if udn == down_max -1 && uan == across_max -1 {
+                return item.cost + (map.at(udn, uan).unwrap() as usize);
             }
             // otherwise push it as a new locations, only replacing an existing on
             // if it costs less.
-            let n_item = Item { down: udn, across: uan, cost: item.cost + (map[udn][uan] as usize) };
+            let n_item = Item { down: udn, across: uan, cost: item.cost + (map.at(udn, uan).unwrap() as usize) };
             if let Some(prev_cost) = been_there.get(&(udn, uan)) {
                 if *prev_cost < n_item.cost {
                     continue;
@@ -93,7 +120,6 @@ fn least_costly_path(map: &Map) -> usize {
                 }
             }
             let cost = n_item.cost;
-            //pq.push(n_item, cost + distance(&map, udn, uan));
             pq.push(n_item, Reverse(cost));
         }
     }
@@ -105,7 +131,7 @@ pub fn day15_1() {
     let lines = utils::read_file_single_result::<String>("./input/day15.txt")
         .expect("Couldn't read file");
     println!("Input: {:?}", &lines);
-    let input = parse(&lines).expect("Parsing went wrong?");
+    let input = Map::parse(&lines).expect("Parsing went wrong?");
     //println!("parsed input: {:?}", input);
     println!("least costly path: {}", least_costly_path(&input));
 }
