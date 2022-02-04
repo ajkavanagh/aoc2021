@@ -249,6 +249,40 @@ fn part1_sum_version(packet: &Packet) -> u32 {
 }
 
 
+// calculate the packets according to their version and id.  This is recursive.
+fn part2_calc_version(packet: &Packet) -> u64 {
+    match packet {
+        Packet::Literal{version: _, value} => *value,
+        Packet::Operator{version: _, operator, packets} => {
+            let interim = packets.iter().map(|p| part2_calc_version(p));
+            match *operator {
+                // add up all sub packets
+                0 => interim.sum::<u64>(),
+                // product of all sub packets.
+                1 => interim.product::<u64>(),
+                // minimum of all sub packets.
+                2 => interim.min().unwrap(),
+                // maximum of all sub packets
+                3 => interim.max().unwrap(),
+                // 5,6,7 all use two packets
+                5 | 6 | 7 => {
+                    let res = interim.collect::<Vec<_>>();
+                    assert!(res.len() == 2);
+                    // greater than (only two packets compared)
+                    match *operator {
+                        5 => if res[0] > res[1] { 1 } else { 0 },
+                        6 => if res[0] < res[1] { 1 } else { 0 },
+                        7 => if res[0] == res[1] { 1 } else { 0 },
+                        _ => panic!("Impossible!"),
+                    }
+                },
+                _ => panic!("Shouldn't be able to have an operator of this code!"),
+            }
+        }
+    }
+}
+
+
 pub fn day16_1() {
     println!("Day 16: Packet Decoder, part 1");
     let lines = utils::read_file_single_result::<String>("./input/day16.txt")
@@ -262,4 +296,17 @@ pub fn day16_1() {
     println!("part1 version sum: {}", part1_sum_version(&pkt));
 }
 
+
+pub fn day16_2() {
+    println!("Day 16: Packet Decoder, part 2");
+    let lines = utils::read_file_single_result::<String>("./input/day16.txt")
+        .expect("Couldn't read file");
+    println!("Input: {:?}", &lines);
+    let input = U32Words::parse_lines(&lines).expect("Couldn't decode words");
+    //println!("Input is: {}", &input);
+    let mut bit_reader = input.bit_reader();
+    let pkt = decode(&mut bit_reader).expect("Couldn't decode?");
+    println!("pkt: {:?}, bit_reader: {:?}", &pkt, bit_reader);
+    println!("part2 version calculation is: {}", part2_calc_version(&pkt));
+}
 
