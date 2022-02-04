@@ -5,7 +5,6 @@
 
 use std::fmt;
 use std::collections::HashMap;
-//use std::cell::RefCell;
 use std::cmp::Reverse;
 
 use priority_queue::PriorityQueue;
