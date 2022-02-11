@@ -224,6 +224,6 @@ pub fn day17_2() {
     println!("Input is: {:?}", &input);
     let shots = find_shots(&input);
     //println!("Calculated shots:");
-    //print_shots(&shots);
+    print_shots(&shots);
     println!("count of shots: {}", shots.len());
 }
