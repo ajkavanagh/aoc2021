@@ -155,6 +155,13 @@ impl PairItem {
         let right = num - left;
         Pair::new_from_naturals(left, right)
     }
+
+    fn magnitude(&self) -> u32 {
+        match &self.0 {
+            PairItemEnum::IsPair(bpd) => (*bpd).magnitude(),
+            PairItemEnum::IsNatural(v) => *v,
+        }
+    }
 }
 
 
@@ -221,6 +228,10 @@ impl Pair {
             PairItem::new_pair(other.clone()));
         sum.reduce();
         sum
+    }
+
+    fn magnitude(&self) -> u32 {
+        (self.left.magnitude() * 3) + (self.right.magnitude() * 2)
     }
 
 }
@@ -327,9 +338,9 @@ impl FromStr for Pair {
 
 pub fn day18_1() {
     println!("Day 18: Snailfish maths, part 1");
-    let pairs = utils::read_file_single_result::<Pair>("./input/day18-test.txt")
+    let pairs = utils::read_file_single_result::<Pair>("./input/day18.txt")
         .expect("Couldn't read file");
-    println!("Input: {:?}", &pairs);
+    //println!("Input: {:?}", &pairs);
 
     //let l1: Vec<Pair> = ["[2,2]","[3,3]","[4,4]","[5,5]","[6,6]"]
         //.iter().map(|s| Pair::from_str(s).unwrap()).collect();
@@ -340,6 +351,6 @@ pub fn day18_1() {
         v = v.add(p);
     }
     println!("Result: {}", &v);
+    println!("Magnitude: {}", v.magnitude());
 
 }
-
