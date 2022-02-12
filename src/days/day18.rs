@@ -335,6 +335,26 @@ impl FromStr for Pair {
 }
 
 
+//part 2 - find the highest magnitude of any two snailfish pairs by adding them and then taking the
+//maximum magnitude.  We need to add 1 + 2, 1+2, 1 +3, ... then 2 + 1, 2 + 3, etc.
+fn max_magnitude(pairs: &[Pair]) -> u32 {
+    let size = pairs.len() -1;
+    let mut max: u32 = 0;
+    for i in 0..size {
+        for j in 0..size {
+            if i == j {
+                continue;
+            }
+            let res = pairs[i].add(&pairs[j]);
+            let mag = res.magnitude();
+            if mag > max {
+                max = mag;
+            }
+        }
+    }
+    max
+}
+
 
 pub fn day18_1() {
     println!("Day 18: Snailfish maths, part 1");
@@ -352,5 +372,14 @@ pub fn day18_1() {
     }
     println!("Result: {}", &v);
     println!("Magnitude: {}", v.magnitude());
+
+}
+
+
+pub fn day18_2() {
+    println!("Day 18: Snailfish maths, part 2");
+    let pairs = utils::read_file_single_result::<Pair>("./input/day18.txt")
+        .expect("Couldn't read file");
+    println!("max magnitude: {}", max_magnitude(&pairs));
 
 }
