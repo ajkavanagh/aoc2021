@@ -39,30 +39,12 @@ impl fmt::Display for PairItem {
 
 
 impl PairItem {
-    fn is_natural(&self) -> bool {
-        match self.0 {
-            PairItemEnum::IsNatural(_) => true,
-            _ => false,
-        }
-    }
-
-    fn is_pair(&self) -> bool {
-        !self.is_natural()
-    }
-
     fn new_natural(v: u32) -> Self {
         Self(PairItemEnum::IsNatural(v))
     }
 
     fn new_pair(pair: Pair) -> Self {
         Self(PairItemEnum::IsPair(Box::new(pair)))
-    }
-
-    fn depth(&self) -> u32 {
-        match &self.0 {
-            PairItemEnum::IsNatural(_) => 1,
-            PairItemEnum::IsPair(p) => 1 + p.depth(),
-        }
     }
 
     fn natural(&self) -> Option<u32> {
@@ -85,51 +67,71 @@ impl PairItem {
             _ => None,
         }
     }
-    // explode a snailfish pair (maybe) by returning the left, right, carries and the new Pair
-    // note the pi is either the left or right side of a snailfish.  The algorithm finds the
-    // deepest pair and explodes that.
-    fn explode(&self) -> (u32, Self, u32) {
-        assert!(self.is_pair(), "Can only explode a pair!");
-        if let Some(pair_ref) = self.pair_ref() {
-            if pair_ref.depth() > 1 {
-            // need to workout which side to go down.
-                if pair_ref.left.depth() >= pair_ref.right.depth() {
-                    let (cl, new_left, cr) = pair_ref.left.explode();
-                    // here add the cr to the first natural on the left
-                    let new_right = pair_ref.right.add_left(cr);
-                    let new_pair = Pair::new_from_pairitems(new_left, new_right);
-                    return (cl, Self::new_pair(new_pair), 0);
-                } else {
-                    let (cl, new_right, cr) = pair_ref.right.explode();
-                    let new_left = pair_ref.left.add_right(cl);
-                    let new_pair = Pair::new_from_pairitems(new_left, new_right);
-                    return (0, Self::new_pair(new_pair), cr);
+
+    fn pair_left_mut_ref(&mut self) -> Option<&mut Self> {
+        match self.0 {
+            PairItemEnum::IsPair(ref mut bp) => Some(&mut (*bp).left),
+            _ => None,
+        }
+    }
+
+    fn pair_right_mut_ref(&mut self) -> Option<&mut Self> {
+        match self.0 {
+            PairItemEnum::IsPair(ref mut bp) => Some(&mut (*bp).right),
+            _ => None,
+        }
+    }
+
+    /// It finds deepest pair, and if it's deep enough, explodes it.  If this is the case, then the
+    /// bool return is true.  Otherwise, it is false. explode a snailfish pair (maybe) by returning
+    /// the left, right, and whether it has exploded. The algorithm finds the deepest pair and
+    /// explodes that if the pair is at least at level 4 or above (0 indexed, means >=3).
+    fn explode(&mut self, depth: u32) -> (u32, u32, bool) {
+        if let Some(pair_left_mut_ref) = self.pair_left_mut_ref() {
+            let (lc, rc, exploded) = pair_left_mut_ref.explode(depth + 1);
+            if exploded {
+                if let Some(pair_right_mut_ref) = self.pair_right_mut_ref() {
+                    pair_right_mut_ref.add_left(rc);
                 }
-            } else {
-                // we are at the deepest level.  Convert a [3,4] into (3, Value(0), 4)
-                assert!(pair_ref.left.is_natural());
-                assert!(pair_ref.right.is_natural());
-                let left = pair_ref.left.natural().unwrap();
-                let right = pair_ref.right.natural().unwrap();
-                return (left, PairItem::new_natural(0), right)
+                return (lc, 0, exploded);
             }
         }
-        unreachable!();
+        if let Some(pair_right_mut_ref) = self.pair_right_mut_ref() {
+            let (lc, rc, exploded) = pair_right_mut_ref.explode(depth + 1);
+            if exploded {
+                if let Some(pair_left_mut_ref) = self.pair_left_mut_ref() {
+                    pair_left_mut_ref.add_right(lc);
+                }
+                return (0, rc, exploded);
+            }
+        }
+        // it's an actual pair with two naturals; let's explode it ONLY if we're at depth 4+
+        if depth >= 3 {
+            if let Some(pair_ref) = self.pair_ref() {
+                let left = pair_ref.left.natural().unwrap();
+                let right = pair_ref.right.natural().unwrap();
+                self.0 = PairItemEnum::IsNatural(0);
+                return (left, right, true);
+            }
+        }
+
+        // otherwise we weren't deep enough
+        (0,0,false)
     }
 
-    fn add_left(&self, natural: u32) -> Self {
-        if let Some(pair_ref) = self.pair_ref() {
-            Self::new_pair(Pair::new_from_pairitems(pair_ref.left.add_left(natural), pair_ref.right.clone()))
+    fn add_left(&mut self, natural: u32) {
+        if let Some(pair_left_mut_ref) = self.pair_left_mut_ref() {
+            pair_left_mut_ref.add_left(natural);
         } else {
-            Self::new_natural(natural + self.natural().unwrap())
+            self.0 = PairItemEnum::IsNatural(natural + self.natural().unwrap());
         }
     }
 
-    fn add_right(&self, natural: u32) -> Self {
-        if let Some(pair_ref) = self.pair_ref() {
-            Self::new_pair(Pair::new_from_pairitems(pair_ref.left.clone(), pair_ref.right.add_right(natural)))
+    fn add_right(&mut self, natural: u32) {
+        if let Some(pair_right_mut_ref) = self.pair_right_mut_ref() {
+            pair_right_mut_ref.add_right(natural);
         } else {
-            Self::new_natural(natural + self.natural().unwrap())
+            self.0 = PairItemEnum::IsNatural(natural + self.natural().unwrap());
         }
     }
 
@@ -180,28 +182,19 @@ impl Pair {
         Self {left, right}
     }
 
-    // work out the depth of a snailfish; recurses to the bottom of the fish
-    fn depth(&self) -> u32 {
-        self.depth_left().max(self.depth_right())
-    }
-
-    fn depth_left(&self) -> u32 {
-        self.left.depth()
-    }
-
-    fn depth_right(&self) -> u32 {
-        self.right.depth()
-    }
-
     /// Reduces itself if the depth is more than 4.
-    fn explode(&mut self) {
-        let (_, pi, _) = PairItem::new_pair(self.clone()).explode();
-        if let PairItem(PairItemEnum::IsPair(pair)) = pi {
-            self.left = pair.left;
-            self.right = pair.right;
-        } else {
-            panic!("Must be able to pull the left and right into self!");
+    fn explode(&mut self) -> bool {
+        let (_, rc, exploded) = self.left.explode(0);
+        if exploded {
+            self.right.add_left(rc);
+            return exploded;
         }
+        let (lc, _, exploded) = self.right.explode(0);
+        if exploded {
+            self.left.add_right(lc);
+            return exploded;
+        }
+        false
     }
 
     /// if the left or right is greater than 9 then split into left and right numbers.
@@ -213,8 +206,7 @@ impl Pair {
     /// no more explodes or splits.
     fn reduce(&mut self) {
         loop {
-            if self.depth() > 4 {
-                self.explode();
+            if self.explode() {
                 continue;
             }
             if !self.split() {
@@ -337,12 +329,13 @@ pub fn day18_1() {
     println!("Day 18: Snailfish maths, part 1");
     let pairs = utils::read_file_single_result::<Pair>("./input/day18-test.txt")
         .expect("Couldn't read file");
-    //println!("Input: {:?}", &pairs);
+    println!("Input: {:?}", &pairs);
 
     //let l1: Vec<Pair> = ["[2,2]","[3,3]","[4,4]","[5,5]","[6,6]"]
         //.iter().map(|s| Pair::from_str(s).unwrap()).collect();
     let mut v: Pair = pairs[0].clone();
     println!("Initial value: {}", &v);
+    //for p in pairs.iter().skip(1).take(1) {
     for p in pairs.iter().skip(1) {
         v = v.add(p);
     }
